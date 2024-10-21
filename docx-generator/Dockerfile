@@ -16,7 +16,7 @@ COPY . .
 # Build the NestJS application
 RUN npm run build
 
-# Expose the port your app runs    on
+# Expose the port your app runs  on
 EXPOSE 8080
 
 # Define the command to run your application
