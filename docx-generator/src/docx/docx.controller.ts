@@ -2,7 +2,7 @@
 
 import { Controller, Post, Body, Res, Logger } from '@nestjs/common';
 import { Response } from 'express';
-import { DocxService } from './docx.service'; // Adjust path as necessary
+import { DocxService } from './docx.service';
 
 @Controller('docx')
 export class DocxController {
