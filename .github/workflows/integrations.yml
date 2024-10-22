@@ -20,11 +20,14 @@ jobs:
 
     - name: Install dependencies
       run: npm install
-      working-directory: ./docx-generator
+      working-directory: ./docx-generator  # Adjust this to your app's directory
 
     - name: Build the application
       run: npm run build
       working-directory: ./docx-generator
+
+    - name: Build Docker image
+      run: docker build -t my-nestjs-app:latest ./docx-generator  # Updated path
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
@@ -32,9 +35,6 @@ jobs:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
-
-    - name: Build Docker image
-      run: docker build -t my-nestjs-app:latest ./docx-generator
 
     - name: Log in to Amazon ECR
       run: |
@@ -46,36 +46,30 @@ jobs:
     - name: Push Docker image to ECR
       run: docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/my-nestjs-app:latest
 
-    - name: Create or Update ECS Task Definition
+    - name: Register new task definition
       run: |
-        echo "Creating or updating ECS task definition..."
-        aws ecs register-task-definition --family my-nestjs-app --container-definitions '[
-          {
+        aws ecs register-task-definition \
+          --family my-nestjs-app \
+          --container-definitions '[{
             "name": "my-nestjs-app",
-            "image": "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/my-nestjs-app:latest",
+            "image": "050451376191.dkr.ecr.ap-south-1.amazonaws.com/my-nestjs-app:latest",
             "cpu": 256,
             "memory": 512,
-            "portMappings": [
-              {
-                "containerPort": 8080,
-                "hostPort": 8080,
-                "protocol": "tcp"
-              }
-            ],
+            "portMappings": [{
+              "containerPort": 8080,
+              "hostPort": 8080,
+              "protocol": "tcp"
+            }],
             "essential": true,
             "environment": [
-              {
-                "name": "HELLO_MESSAGE",
-                "value": "${{ secrets.HELLO_MESSAGE }}"
-              }
+              {"name": "HELLO_MESSAGE", "value": "${{ secrets.HELLO_MESSAGE }}"}
             ]
-          }
-        ]'
+          }]'
 
     - name: Deploy to ECS
-      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-      with:
-        task-definition: my-nestjs-app
-        service: ehr-ecs-dev-service-ap-south-1
-        cluster: EHR-ECS-DEV2-ap-south-1-s
-        wait-for-service-stability: true
+      run: |
+        aws ecs update-service \
+          --cluster EHR-ECS-DEV2-ap-south-1-s \
+          --service ehr-ecs-dev-service-ap-south-1 \
+          --force-new-deployment \
+          --task-definition my-nestjs-app
