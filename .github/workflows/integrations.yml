@@ -53,7 +53,7 @@ jobs:
             --family my-nestjs-app \
             --container-definitions '[{
               "name": "my-nestjs-app",
-              "image": "'${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.'${{ secrets.AWS_REGION }}'.amazonaws.com/my-nestjs-app:latest",
+              "image": "'${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.'${{ secrets.AWS_REGION }}'.amazonaws.com/my-nestjs-app:latest'",
               "cpu": 256,
               "memory": 512,
               "portMappings": [{
