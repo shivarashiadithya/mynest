@@ -10,66 +10,70 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v2
-      with:
-        node-version: '18'
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
 
-    - name: Install dependencies
-      run: npm install
-      working-directory: ./docx-generator  # Adjust this to your app's directory
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./docx-generator  # Adjust this to your app's directory
 
-    - name: Build the application
-      run: npm run build
-      working-directory: ./docx-generator
+      - name: Build the application
+        run: npm run build
+        working-directory: ./docx-generator
 
-    - name: Build Docker image
-      run: docker build -t my-nestjs-app:latest ./docx-generator  # Updated path
+      - name: Build Docker image
+        run: docker build -t my-nestjs-app:latest ./docx-generator  # Updated path
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ secrets.AWS_REGION }}
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-    - name: Log in to Amazon ECR
-      run: |
-        aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+      - name: Log in to Amazon ECR
+        run: |
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
 
-    - name: Tag Docker image
-      run: docker tag my-nestjs-app:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/my-nestjs-app:latest
+      - name: Tag Docker image
+        run: docker tag my-nestjs-app:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/my-nestjs-app:latest
 
-    - name: Push Docker image to ECR
-      run: docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/my-nestjs-app:latest
+      - name: Push Docker image to ECR
+        run: docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/my-nestjs-app:latest
 
-    - name: Register new task definition
-      run: |
-        aws ecs register-task-definition \
-          --family my-nestjs-app \
-          --container-definitions '[{
-            "name": "my-nestjs-app",
-            "image": "050451376191.dkr.ecr.ap-south-1.amazonaws.com/my-nestjs-app:latest",
-            "cpu": 256,
-            "memory": 512,
-            "portMappings": [{
-              "containerPort": 8080,
-              "hostPort": 8080,
-              "protocol": "tcp"
-            }],
-            "essential": true,
-            "environment": [
-              {"name": "HELLO_MESSAGE", "value": "${{ secrets.HELLO_MESSAGE }}"}
-            ]
-          }]'
+      - name: Register new task definition
+        id: register_task_definition
+        run: |
+          task_definition=$(aws ecs register-task-definition \
+            --family my-nestjs-app \
+            --container-definitions '[{
+              "name": "my-nestjs-app",
+              "image": "'${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.'${{ secrets.AWS_REGION }}'.amazonaws.com/my-nestjs-app:latest",
+              "cpu": 256,
+              "memory": 512,
+              "portMappings": [{
+                "containerPort": 8080,
+                "hostPort": 8080,
+                "protocol": "tcp"
+              }],
+              "essential": true,
+              "environment": [
+                {"name": "HELLO_MESSAGE", "value": "${{ secrets.HELLO_MESSAGE }}"}
+              ]
+            }]' \
+            --query 'taskDefinition.taskDefinitionArn' --output text)
+          echo "Task definition registered: $task_definition"
+          echo "::set-output name=task_definition::$task_definition" # Store task definition ARN as output
 
-    - name: Deploy to ECS
-      run: |
-        aws ecs update-service \
-          --cluster EHR-ECS-DEV2-ap-south-1-s \
-          --service ehr-ecs-dev-service-ap-south-1 \
-          --force-new-deployment \
-          --task-definition my-nestjs-app
+      - name: Deploy to ECS
+        run: |
+          aws ecs update-service \
+            --cluster EHR-ECS-DEV2-ap-south-1-s \
+            --service ehr-ecs-dev-service-ap-south-1 \
+            --force-new-deployment \
+            --task-definition ${{ steps.register_task_definition.outputs.task_definition }}  # Reference the latest task definition ARN
