@@ -27,7 +27,7 @@ jobs:
       working-directory: ./docx-generator
 
     - name: Build Docker image
-      run: docker build -t my-nestjs-app:latest ./docx-generator  # Updated path to your app
+      run: docker build -t my-nestjs-app:latest ./docx-generator  # Updated path to your ap
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
