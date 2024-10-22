@@ -20,14 +20,14 @@ jobs:
 
     - name: Install dependencies
       run: npm install
-      working-directory: ./docx-generator  # adjust this to your app's directory
+      working-directory: ./docx-generator  # Adjust this to your app's directory
 
     - name: Build the application
       run: npm run build
       working-directory: ./docx-generator
 
     - name: Build Docker image
-      run: docker build -t my-nestjs-app:latest .
+      run: docker build -t my-nestjs-app:latest ./docx-generator  # Updated path
 
     - name: Log in to Amazon ECR
       uses: aws-actions/amazon-ecr-login@v1
