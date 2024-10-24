@@ -20,7 +20,7 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-        working-directory: ./docx-generator  # Adjust this to your app's directory
+        working-directory: ./docx-generator  # Adjust this to your app's director
 
       - name: Build the application
         run: npm run build
