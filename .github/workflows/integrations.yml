@@ -88,10 +88,7 @@ jobs:
         run: |
           echo "## Build Failure Report" > failure-report.md
           echo "" >> failure-report.md
-          echo "### Failed Step Logs" >> failure-report.md
-          if [[ "${{ jobs.build-and-deploy.outcome }}" == "failure" ]]; then
-            echo "- **Build and Deploy**: Failed" >> failure-report.md
-          fi
+          echo "### Build and Deploy job failed." >> failure-report.md
 
       - name: Send Email
         uses: dawidd6/action-send-mail@v3
