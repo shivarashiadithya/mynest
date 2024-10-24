@@ -20,14 +20,14 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-        working-directory: ./docx-generator  # Adjust this to your app's director
+        working-directory: ./docx-generator  # Adjust this to your app's directory
 
       - name: Build the application
         run: npm run build
         working-directory: ./docx-generator
 
       - name: Build Docker image
-        run: docker build -t my-nestjs-app:latest ./docx-generator  # Updated path
+        run: docker build -t my-nestjs-app:latest ./docx-generator
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -76,7 +76,10 @@ jobs:
             --cluster EHR-ECS-DEV2-ap-south-1-s \
             --service ehr-ecs-dev-service-ap-south-1 \
             --force-new-deployment \
-            --task-definition ${{ steps.register_task_definition.outputs.task_definition }}  # Reference the latest task definition ARN
+            --task-definition ${{ steps.register_task_definition.outputs.task_definition }}
+
+      - name: Force Error for Testing  # This line introduces an intentional error
+        run: non_existing_command  # This command does not exist
 
   # Failure notification job
   notify-on-failure:
