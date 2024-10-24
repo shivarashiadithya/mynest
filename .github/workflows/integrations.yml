@@ -89,9 +89,10 @@ jobs:
     steps:
       - name: Generate failure report
         run: |
-          echo "## Build Failure Report" > failure-report.md
-          echo "" >> failure-report.md
-          echo "### Build and Deploy job failed." >> failure-report.md
+          echo "## Build Failure Report" > failure-report.txt
+          echo "" >> failure-report.txt
+          echo "The build-and-deploy job has failed." >> failure-report.txt
+          echo "Check the logs for more details." >> failure-report.txt
 
       - name: Send Email
         uses: dawidd6/action-send-mail@v3
@@ -105,7 +106,7 @@ jobs:
             The build-and-deploy job has failed. Please find the failure details in the attached report.
           to: ${{ secrets.GMAIL_USERNAME }}  # Use the same email as the sender
           from: ${{ secrets.GMAIL_USERNAME }}  # Use your Gmail address
-          attachments: failure-report.md
+          attachments: failure-report.txt  # Change to .txt file
 
   # Success notification job
   notify-on-success:
