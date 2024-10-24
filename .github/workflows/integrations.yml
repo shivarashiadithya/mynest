@@ -93,15 +93,15 @@ jobs:
       - name: Send Email
         uses: dawidd6/action-send-mail@v3
         with:
-          server_address: smtp-mail.outlook.com
+          server_address: smtp.gmail.com
           server_port: 587
-          username: ${{ secrets.OUTLOOK_USERNAME }}
-          password: ${{ secrets.OUTLOOK_PASSWORD }}
+          username: ${{ secrets.GMAIL_USERNAME }}
+          password: ${{ secrets.GMAIL_PASSWORD }}
           subject: "GitHub Actions Job Failure Report"
           body: |
             The build-and-deploy job has failed. Please find the failure details in the attached report.
-          to: your-email@outlook.com  # Change this to the recipient's email
-          from: your-email@outlook.com
+          to: ${{ secrets.GMAIL_USERNAME }}  # Use the same email as the sender
+          from: ${{ secrets.GMAIL_USERNAME }}  # Use your Gmail address
           attachments: failure-report.md
 
   # Success notification job
@@ -113,12 +113,12 @@ jobs:
       - name: Send Email
         uses: dawidd6/action-send-mail@v3
         with:
-          server_address: smtp-mail.outlook.com
+          server_address: smtp.gmail.com
           server_port: 587
-          username: ${{ secrets.OUTLOOK_USERNAME }}
-          password: ${{ secrets.OUTLOOK_PASSWORD }}
+          username: ${{ secrets.GMAIL_USERNAME }}
+          password: ${{ secrets.GMAIL_PASSWORD }}
           subject: "GitHub Actions Deployment Success"
           body: |
             The build-and-deploy job has succeeded. Your application was successfully deployed to AWS ECS.
-          to: your-email@outlook.com  # Change this to the recipient's email
-          from: your-email@outlook.com
+          to: ${{ secrets.GMAIL_USERNAME }}  # Use the same email as the sender
+          from: ${{ secrets.GMAIL_USERNAME }}  # Use your Gmail address
