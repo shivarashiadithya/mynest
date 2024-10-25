@@ -48,9 +48,9 @@ jobs:
       # Step 7: Sync build files to S3 bucket
       - name: Upload to S3
         run: |
-          aws s3 sync ./docx-generator/dist s3://${{ secrets.S3_BUCKET_NAME }}
+          aws s3 sync ./docx-generator/dist s3://${{ secrets.S3_BUCKET }}
 
       # Step 8: Invalidate CloudFront Cache
       - name: Invalidate CloudFront Cache
         run: |
-          aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_ID }} --paths "/*"
